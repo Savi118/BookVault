@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(
   cors({
-    origin: CLIENT_URL || "http://localhost:5173",
+    origin: CLIENT_URL || "https://book-vault-nlsf.vercel.app",
     credentials: true,
   })
 );
