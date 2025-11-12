@@ -15,9 +15,9 @@ import Signup from "./pages/Signup";
 import Error from "./pages/404";
 
 // Protected Pages
-import Library from "./pages/protected/library";
-import Wishlist from "./pages/protected/wishlist";
-import Profile from "./pages/protected/profile";
+import Library from "./pages/protected/Library";
+import Wishlist from "./pages/protected/Wishlist";
+import Profile from "./pages/protected/Profile";
 
 // utils
 import ProtectedRoute from "./utils/ProtectedRoute";
