@@ -1,0 +1,2202 @@
+okh create a readme.md for 
+1.frontend
+  A.pages
+    a.About.jsx
+        import { motion } from "framer-motion";
+import { GiBurningBook } from "react-icons/gi";
+import { FaNodeJs, FaReact, FaDatabase } from "react-icons/fa";
+import { SiMongodb, SiExpress } from "react-icons/si";
+
+const About = () => {
+  return (
+    <section className='min-h-screen flex flex-col items-center justify-center text-center px-6 py-16 text-gray-200'>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className='flex items-center justify-center space-x-3 mb-8'
+      >
+        <GiBurningBook className='text-purple-500 text-5xl drop-shadow-lg' />
+        <h1 className='text-5xl md:text-6xl font-extrabold'>
+          About <span className='text-purple-400'>BookVault</span>
+        </h1>
+      </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+        className='max-w-3xl text-slate-300 text-lg md:text-xl leading-relaxed mb-10'
+      >
+        BookVault is your personal digital library — built for readers,
+        dreamers, and learners who want to keep their stories close and their
+        shelves smarter. Whether you love collecting, exploring, or
+        rediscovering books, BookVault makes it effortless, elegant, and fun
+        📚💫
+      </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className='grid md:grid-cols-3 gap-8 max-w-6xl w-full'
+      >
+        <div className='bg-slate-800/70 border border-slate-700 rounded-2xl p-6 shadow-lg hover:shadow-purple-500/20 transition-all duration-300'>
+          <h3 className='text-purple-400 text-2xl font-semibold mb-3'>
+            📖 Your Smart Library
+          </h3>
+          <p className='text-slate-400 text-sm leading-relaxed'>
+            Organize all your books in one secure, searchable vault. From your
+            favorite classics to the latest tech reads — everything stays
+            accessible, anytime, anywhere.
+          </p>
+        </div>
+
+        <div className='bg-slate-800/70 border border-slate-700 rounded-2xl p-6 shadow-lg hover:shadow-cyan-500/20 transition-all duration-300'>
+          <h3 className='text-cyan-400 text-2xl font-semibold mb-3'>
+            🌍 Explore & Discover
+          </h3>
+          <p className='text-slate-400 text-sm leading-relaxed'>
+            Find books you’ve never read, track what’s trending, and explore
+            recommendations curated by community and categories. Discovery never
+            felt this smooth.
+          </p>
+        </div>
+
+        <div className='bg-slate-800/70 border border-slate-700 rounded-2xl p-6 shadow-lg hover:shadow-purple-500/20 transition-all duration-300'>
+          <h3 className='text-purple-400 text-2xl font-semibold mb-3'>
+            ❤️ Wishlist & Progress
+          </h3>
+          <p className='text-slate-400 text-sm leading-relaxed'>
+            Save what you love, track your reading progress, and set your next
+            goal. BookVault keeps your reading life organized and motivating.
+          </p>
+        </div>
+      </motion.div>
+
+      <div className='w-24 h-1 mt-12 mb-8 bg-linear-to-r from-cyan-400 to-purple-500 rounded-full'></div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className='max-w-4xl text-center space-y-4'
+      >
+        <h2 className='text-3xl font-bold text-purple-400'>🧩 Tech Stack</h2>
+        <p className='text-slate-400 max-w-2xl mx-auto'>
+          BookVault is powered by the MERN Stack — combining powerful backend
+          logic with dynamic frontend performance for a seamless reading
+          experience.
+        </p>
+
+        <div className='flex flex-wrap items-center justify-center gap-6 mt-6 text-4xl'>
+          <FaReact className='text-cyan-400' title='ReactJS' />
+          <SiExpress className='text-gray-300' title='ExpressJS' />
+          <FaNodeJs className='text-green-500' title='NodeJS' />
+          <SiMongodb className='text-green-400' title='MongoDB' />
+          <FaDatabase className='text-purple-500' title='Mongoose ORM' />
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className='mt-12 space-x-4'
+      >
+        <a
+          href='/signup'
+          className='px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-lg shadow-lg hover:shadow-cyan-500/30 transition-all'
+        >
+          Get Started
+        </a>
+        <a
+          href='/explore'
+          className='px-6 py-3 bg-purple-500 hover:bg-purple-400 text-black font-semibold rounded-lg shadow-lg hover:shadow-purple-500/30 transition-all'
+        >
+          Explore Library
+        </a>
+      </motion.div>
+    </section>
+  );
+};
+
+export default About;
+
+    b.Explore.jsx
+    import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
+import toast, { Toaster } from "react-hot-toast";
+import BookCard from "../components/BookCard";
+import api from "../utils/api";
+
+const Explore = () => {
+  const { user } = useSelector((state) => state.auth);
+  const [books, setBooks] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [search, setSearch] = useState("");
+  const [genre, setGenre] = useState("all");
+  const [wishlist, setWishlist] = useState([]);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const res = await api.get("/api/book/all");
+        const fetchedBooks = Array.isArray(res.data.books)
+          ? res.data.books
+          : [];
+        const visibleBooks =
+          user && user.readBooks?.length > 0
+            ? fetchedBooks.filter((book) => !user.readBooks.includes(book._id))
+            : fetchedBooks;
+        setBooks(visibleBooks);
+        setFiltered(visibleBooks);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load books.");
+      }
+    };
+    fetchBooks();
+  }, [user]);
+
+  useEffect(() => {
+    const filteredBooks = books.filter((b) => {
+      const matchSearch =
+        b.title.toLowerCase().includes(search.toLowerCase()) ||
+        b.author.toLowerCase().includes(search.toLowerCase());
+      const matchGenre = genre === "all" || b.genre === genre;
+      return matchSearch && matchGenre;
+    });
+    setFiltered(filteredBooks);
+  }, [search, genre, books]);
+
+  const handleWishlist = async (bookId) => {
+    try {
+      const isWishlisted = wishlist.includes(bookId);
+      const endpoint = isWishlisted
+        ? "/api/wishlist/remove"
+        : "/api/wishlist/add";
+      const res = await api.post(endpoint, { bookId });
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+
+        setWishlist((prev) =>
+          isWishlisted ? prev.filter((id) => id !== bookId) : [...prev, bookId]
+        );
+      }
+    } catch (err) {
+      console.error(
+        "❌ Wishlist Toggle Error:",
+        err.response?.data || err.message
+      );
+      toast.error("Failed to update wishlist");
+    }
+  };
+
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      try {
+        const res = await api.get("/api/wishlist/get");
+        if (res.data.success) {
+          const wishlistIds = res.data.wishlist.map((b) => b._id);
+          setWishlist(wishlistIds);
+        }
+      } catch (err) {
+        console.error(
+          "❌ Fetch Wishlist Error:",
+          err.response?.data || err.message
+        );
+      }
+    };
+    fetchWishlist();
+  }, []);
+
+  const handleMarkRead = async (bookId) => {
+    try {
+      const res = await api.post("/api/read/mark-read", { bookId });
+      if (res.data.success) {
+        toast.success("Book marked as read ✅");
+        setBooks((prevBooks) => prevBooks.filter((b) => b._id !== bookId));
+      } else {
+        toast.error(res.data.message || "Failed to mark as read");
+      }
+    } catch (err) {
+      toast.error("Failed to mark as read.");
+    }
+  };
+
+  return (
+    <>
+      <Toaster position='top-center' reverseOrder={false} />
+      <section className='min-h-screen text-gray-200 px-6 py-16'>
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className='text-center text-5xl font-extrabold mb-6'
+        >
+          Explore the <span className='text-purple-400'>Vault</span> 📚
+        </motion.h1>
+
+        <div className='flex flex-col md:flex-row items-center justify-center gap-4 mb-10'>
+          <input
+            type='text'
+            placeholder='Search by title or author...'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className='px-4 py-3 w-full md:w-1/2 bg-slate-800 border border-slate-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-purple-400 outline-none'
+          />
+          <select
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            className='px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-cyan-400 outline-none'
+          >
+            <option value='all'>All Genres</option>
+            <option value='fiction'>Fiction</option>
+            <option value='fantasy'>Fantasy</option>
+            <option value='technology'>Technology</option>
+            <option value='history'>History</option>
+            <option value='self-help'>Self Help</option>
+          </select>
+        </div>
+
+        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8'>
+          {filtered.length > 0 ? (
+            filtered.map((book) => (
+              <BookCard
+                key={book._id}
+                book={book}
+                isUser={user}
+                onWishlist={handleWishlist}
+                onRead={handleMarkRead}
+                wishlist={wishlist}
+              />
+            ))
+          ) : (
+            <p className='text-center text-slate-400 col-span-full'>
+              No books found matching your search.
+            </p>
+          )}
+        </div>
+      </section>
+    </>
+  );
+};
+
+export default Explore;
+
+    c.Home.jsx
+    import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { GiBurningBook } from "react-icons/gi";
+
+const Home = () => {
+  return (
+    <section className='min-h-screen flex flex-col items-center justify-center text-center px-6 text-gray-200'>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className='flex items-center justify-center space-x-3 mb-6'
+      >
+        <GiBurningBook className='text-purple-500 text-5xl drop-shadow-lg' />
+        <h1 className='text-5xl md:text-6xl font-extrabold'>
+          Book<span className='text-purple-400'>Vault</span>
+        </h1>
+      </motion.div>
+
+      <motion.h2
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className='text-2xl md:text-3xl font-semibold text-slate-300 max-w-3xl'
+      >
+        Unlock a universe of books — store, explore, and cherish every story in
+        one place. 📚✨
+      </motion.h2>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className='text-slate-400 text-md md:text-lg mt-4 max-w-xl'
+      >
+        Your personal digital library — track your reads, build wishlists, and
+        discover your next favorite book with{" "}
+        <span className='text-purple-400 font-medium'>BookVault</span>.
+      </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.9 }}
+        className='flex flex-wrap gap-4 justify-center mt-8'
+      >
+        <Link
+          to='/login'
+          className='px-6 py-3 bg-purple-500 hover:bg-purple-400 text-black font-semibold rounded-lg shadow-lg hover:shadow-purple-500/30 transition-all'
+        >
+          Login
+        </Link>
+        <Link
+          to='/signup'
+          className='px-6 py-3 bg-pink-600 hover:bg-pink-500 text-black font-semibold rounded-lg shadow-lg hover:shadow-pink-500/30 transition-all'
+        >
+          Sign Up
+        </Link>
+      </motion.div>
+    </section>
+  );
+};
+
+export default Home;
+
+    d.Login.jsx
+    import axios from "axios";
+import { useContext, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast, Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
+import { AuthContext } from "../context/AuthContext";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../redux/slices/authSlice";
+
+const Login = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    reset,
+  } = useForm();
+
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      const res = await api.post("/api/user/login", data);
+
+      if (res.data.success) {
+        dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
+        toast.success(`Welcome back, ${res.data.user.name}!`);
+        reset();
+        setTimeout(() => navigate("/library"), 1200);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Login failed. Please check your credentials"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <>
+      <Toaster position='top-center' reverseOrder={false} />
+      <div className='flex justify-center items-center min-h-screen  text-gray-200'>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className='bg-slate-900/60 backdrop-blur-md border border-s-lime-800 p-8  rounded-2xl shadow-xl w-full max-w-md space-y-6 '
+        >
+          <h2 className='text-3xl font-extrabold text-center text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-purple-400'>
+            Welcome to BookVault
+          </h2>
+          <div>
+            <label className='block mb-1 text-slate-300 font-medium'>
+              Username or Email
+            </label>
+            <input
+              type='text'
+              placeholder='username or you@example.com'
+              {...register("identifier", {
+                required: "Username or email is required",
+              })}
+              className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 outline-none transition-all'
+            />
+            {errors.identifier && (
+              <p className='text-pink-400 text-sm mt-1'>
+                {errors.identifier.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className='block mb-1 text-slate-300 font-medium'>
+              Password
+            </label>
+            <input
+              type='password'
+              placeholder='Enter your password'
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 8,
+                  message: "Password must be atleast 8 characters",
+                },
+              })}
+              className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/40 outline-none transition-all'
+            />
+            {errors.password && (
+              <p className='text-pink-400 text-sm mt-1'>
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type='submit'
+            disabled={loading}
+            className={`w-full py-3 font-semibold text-black rounded-lg shadow-lg bg-linear-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 hover:shadow-purple-500/30 transition-all ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+          <p className='text-slate-400 text-sm text-center'>
+            Don’t have an account?{" "}
+            <a
+              href='/signup'
+              className='text-cyan-400 hover:text-cyan-300 underline'
+            >
+              Register
+            </a>
+          </p>
+        </form>
+      </div>
+    </>
+  );
+};
+
+export default Login;
+
+    e.Signup.jsx
+    import { useForm } from "react-hook-form";
+import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import api from "../utils/api";
+
+const Signup = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    reset,
+  } = useForm();
+
+  const password = watch("password");
+
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      const res = await api.post("/api/user/register", data);
+      console.log("server response:", res.data);
+      if (res.data.success) {
+        toast.success("Account created successfully! 🎉");
+        reset();
+        setTimeout(() => navigate("/login"), 1500);
+      } else {
+        toast.error(res.data.message || "Signup failed!");
+      }
+    } catch (error) {
+      console.error("Signup Error:", error.response?.data || error.message);
+      toast.error(
+        error.response?.data?.message ||
+          "Signup failed. Please check your details."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Toaster position='top-center' reverseOrder={false} />
+      <div className='flex justify-center items-center min-h-screen text-gray-200 lg:mt-5'>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className='bg-slate-900/60 backdrop-blur-md border border-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6'
+        >
+          <h2 className='text-3xl font-extrabold text-center text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-purple-400'>
+            Create Your Account
+          </h2>
+
+          <div>
+            <label className='block mb-1 text-slate-300 font-medium'>
+              Full Name
+            </label>
+            <input
+              type='text'
+              placeholder='John Doe'
+              {...register("name", {
+                required: "Full name is required",
+                minLength: {
+                  value: 3,
+                  message: "Name must be at least 3 characters",
+                },
+              })}
+              className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 outline-none transition-all'
+            />
+            {errors.name && (
+              <p className='text-pink-400 text-sm mt-1'>
+                {errors.name.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className='block mb-1 text-slate-300 font-medium'>
+              Username
+            </label>
+            <input
+              type='text'
+              placeholder='username123'
+              {...register("username", {
+                required: "Username is required",
+                pattern: {
+                  value: /^[A-Za-z0-9]+$/,
+                  message: "Username can only contain letters or numbers",
+                },
+              })}
+              className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 outline-none transition-all'
+            />
+            {errors.username && (
+              <p className='text-pink-400 text-sm mt-1'>
+                {errors.username.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className='block mb-1 text-slate-300 font-medium'>
+              Email
+            </label>
+            <input
+              type='email'
+              placeholder='you@example.com'
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                  message: "Enter a valid email address",
+                },
+              })}
+              className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 outline-none transition-all'
+            />
+            {errors.email && (
+              <p className='text-pink-400 text-sm mt-1'>
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className='block mb-1 text-slate-300 font-medium'>
+              Password
+            </label>
+            <input
+              type='password'
+              placeholder='Enter your password'
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 8,
+                  message: "Minimum 8 characters required",
+                },
+                pattern: {
+                  value:
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/,
+                  message:
+                    "Must include uppercase, lowercase, number & special character",
+                },
+              })}
+              className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/40 outline-none transition-all'
+            />
+            {errors.password && (
+              <p className='text-pink-400 text-sm mt-1'>
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className='block mb-1 text-slate-300 font-medium'>
+              Confirm Password
+            </label>
+            <input
+              type='password'
+              placeholder='Re-enter your password'
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+                validate: (value) =>
+                  value === password || "Passwords do not match",
+              })}
+              className='w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/40 outline-none transition-all'
+            />
+            {errors.confirmPassword && (
+              <p className='text-pink-400 text-sm mt-1'>
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type='submit'
+            disabled={loading}
+            className={`w-full py-3 font-semibold text-black rounded-lg shadow-lg bg-linear-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 hover:shadow-purple-500/30 transition-all ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
+          >
+            {loading ? "Creating Account..." : "Sign Up"}
+          </button>
+
+          <p className='text-slate-400 text-sm text-center'>
+            Already have an account?{" "}
+            <a
+              href='/login'
+              className='text-cyan-400 hover:text-cyan-300 underline'
+            >
+              Login
+            </a>
+          </p>
+        </form>
+      </div>
+    </>
+  );
+};
+
+export default Signup;
+
+    f.404.jsx
+    import { TbError404 } from "react-icons/tb";
+import { FaRedditAlien } from "react-icons/fa6";
+import { Link } from "react-router-dom";
+import Footer from "../components/Footer";
+
+const Error = () => {
+  return (
+    <>
+      <section className='flex flex-col items-center justify-center text-center min-h-[80vh]  text-gray-200 px-6'>
+        <div className='relative'>
+          <TbError404 className='text-8xl md:text-9xl text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.4)] animate-pulse' />
+          <FaRedditAlien className='absolute -top-6 -right-8 text-5xl text-pink-500 drop-shadow-[0_0_12px_rgba(236,72,153,0.5)] animate-bounce' />
+        </div>
+
+        <h1 className='text-3xl md:text-4xl font-extrabold mt-6 tracking-wide'>
+          Oops! Page Not Found 👽
+        </h1>
+        <p className='text-slate-400 mt-3 max-w-md'>
+          Looks like this page wandered off into another galaxy. Don’t worry,
+          our alien friend is already searching for it!
+        </p>
+
+        <Link
+          to='/'
+          className='mt-8 px-6 py-3 bg-linear-to-r from-purple-600 to-pink-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-pink-500/40 hover:scale-105 transition-all duration-300'
+        >
+          🚀 Back to Home
+        </Link>
+
+        <div className='absolute bottom-10 opacity-20 blur-3xl bg-purple-500 w-40 h-40 rounded-full'></div>
+      </section>
+    </>
+  );
+};
+
+export default Error;
+
+    g.protected
+      i.Library.jsx
+    import { useEffect, useState } from "react";
+import { IoAddCircle } from "react-icons/io5";
+import toast from "react-hot-toast";
+import api from "../../utils/api";
+import BookCard from "../../components/BookCard";
+import { useSelector } from "react-redux";
+
+const Library = () => {
+  const { user } = useSelector((state) => state.auth);
+  const [readBooks, setReadBooks] = useState([]); // ✅ consistent name
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [genre, setGenre] = useState("all");
+
+  useEffect(() => {
+    const fetchReadBooks = async () => {
+      try {
+        const res = await api.get("/api/read/get-read");
+        const fetchedReadBooks = Array.isArray(res.data.readBooks)
+          ? res.data.readBooks
+          : [];
+        const visibleBooks =
+          user && user.wishlist?.length > 0
+            ? fetchedReadBooks.filter(
+                (book) => !user.wishlist.includes(book._id)
+              )
+            : fetchedReadBooks;
+        setReadBooks(visibleBooks);
+        setFilteredBooks(visibleBooks);
+      } catch (err) {
+        console.error("❌ Error fetching read books:", err);
+        toast.error("Failed to load your library 😢");
+      }
+    };
+    fetchReadBooks();
+  }, [user]);
+
+  useEffect(() => {
+    const filtered = readBooks.filter((b) => {
+      const matchSearch =
+        b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.author.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchGenre = genre === "all" || b.genre === genre;
+      return matchSearch && matchGenre;
+    });
+    setFilteredBooks(filtered);
+  }, [searchTerm, genre, readBooks]);
+
+  const handleRemoveRead = async (bookId) => {
+    try {
+      const res = await api.post("/api/read/remove", { bookId });
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+
+        setReadBooks((prev) => prev.filter((b) => b._id !== bookId));
+        setFilteredBooks((prev) => prev.filter((b) => b._id !== bookId));
+      }
+    } catch (err) {
+      console.error("❌ Remove Read Error:", err.response?.data || err.message);
+      toast.error("Couldn't remove book from read list.");
+    }
+  };
+
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = readBooks.filter(
+      (book) =>
+        book.title.toLowerCase().includes(term) ||
+        book.author.toLowerCase().includes(term)
+    );
+    setFilteredBooks(filtered);
+  };
+
+  return (
+    <div className='min-h-screen  text-gray-100 p-6 relative'>
+      <div className='max-w-6xl mx-auto'>
+        <div className='flex flex-col sm:flex-row justify-between items-center mb-8'>
+          <h1 className='text-3xl font-bold text-purple-400'>📚 My Library</h1>
+          <div className='flex gap-3 items-center w-full sm:w-auto'>
+            <input
+              type='text'
+              value={searchTerm}
+              onChange={handleSearch}
+              placeholder='Search by title or author...'
+              className='w-full sm:w-64 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 placeholder-slate-500 focus:ring-2 focus:ring-pink-500 focus:outline-none transition-all'
+            />
+
+            <select
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+              className='px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-pink-400 outline-none'
+            >
+              <option value='all'>All Genres</option>
+              <option value='fiction'>Fiction</option>
+              <option value='fantasy'>Fantasy</option>
+              <option value='technology'>Technology</option>
+              <option value='history'>History</option>
+              <option value='self-help'>Self Help</option>
+            </select>
+          </div>
+        </div>
+
+        {filteredBooks.length > 0 ? (
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {filteredBooks.map((book) => (
+              <BookCard
+                key={book._id}
+                book={book}
+                isUser={!!user}
+                showWishlist={false}
+                showMarkAsRead={true}
+                onRemoveRead={() => handleRemoveRead(book._id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className='text-center text-slate-400 mt-12 text-lg'>
+            😕 No books found in your library.
+          </p>
+        )}
+      </div>
+
+      <button
+        className='fixed bottom-6 right-6 text-purple-500 hover:text-purple-400 transition-all duration-300'
+        title='Add new book'
+        onClick={() => toast("📖 Add new book coming soon!")}
+      >
+        <IoAddCircle className='text-6xl drop-shadow-lg' />
+      </button>
+    </div>
+  );
+};
+
+export default Library;
+
+      ii.Profile.jsx
+    import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { FaUserCircle } from "react-icons/fa";
+import { MdEmail, MdOutlineLogout } from "react-icons/md";
+import { BsCalendarDate } from "react-icons/bs";
+import { logout } from "../../redux/slices/authSlice";
+
+const Profile = () => {
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  if (!user) {
+    return (
+      <div className='flex flex-col items-center justify-center min-h-screen text-gray-300'>
+        <h2 className='text-2xl font-bold mb-4'>You are not logged in!</h2>
+        <button
+          onClick={() => navigate("/login")}
+          className='px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg shadow-md hover:shadow-purple-400/30 transition-all'
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success("You have been logged out 👋");
+    navigate("/");
+  };
+
+  return (
+    <div className='text-gray-200 pt-12 px-6'>
+      <div className='max-w-3xl mx-auto bg-slate-900/70 border border-slate-700 rounded-3xl shadow-lg p-8 text-center space-y-6'>
+        <div className='flex justify-center'>
+          <FaUserCircle className='text-purple-500 text-8xl drop-shadow-lg' />
+        </div>
+
+        <div>
+          <h1 className='text-3xl font-bold text-white'>
+            {user.name || "Unnamed User"}
+          </h1>
+          <p className='text-slate-400 text-sm'>
+            @{user.username || "Unknown"}
+          </p>
+        </div>
+
+        <div className='bg-slate-800/50 rounded-2xl p-6 text-left space-y-4'>
+          <div className='flex items-center gap-3'>
+            <MdEmail className='text-cyan-400 text-xl' />
+            <p className='text-gray-300'>{user.email}</p>
+          </div>
+
+          <div className='flex items-center gap-3'>
+            <BsCalendarDate className='text-purple-400 text-xl' />
+            <p className='text-gray-300'>
+              Joined:{" "}
+              {user.createdAt
+                ? new Date(user.createdAt).toLocaleDateString()
+                : "Unknown"}
+            </p>
+          </div>
+        </div>
+
+        <div className='grid grid-cols-2 sm:grid-cols-3 gap-4 text-center'>
+          <div className='bg-slate-800/50 rounded-xl p-4'>
+            <h3 className='text-2xl font-bold text-purple-400'>
+              {user?.wishlist?.length || 0}
+            </h3>
+            <p className='text-slate-400 text-sm'>Wishlist Books</p>
+          </div>
+
+          <div className='bg-slate-800/50 rounded-xl p-4'>
+            <h3 className='text-2xl font-bold text-cyan-400'>
+              {user?.readBooks?.length || 0}
+            </h3>
+            <p className='text-slate-400 text-sm'>Read Books</p>
+          </div>
+
+          <div className='bg-slate-800/50 rounded-xl p-4 hidden sm:block'>
+            <h3 className='text-2xl font-bold text-pink-400'>⭐</h3>
+            <p className='text-slate-400 text-sm'>Member</p>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className='mt-6 flex items-center justify-center gap-2 mx-auto bg-red-500 hover:bg-red-400 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:shadow-red-400/30 transition-all'
+        >
+          <MdOutlineLogout className='text-xl' /> Logout
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;
+
+      iii.Wishlist.jsx
+  import { useEffect, useState } from "react";
+import { IoAddCircle } from "react-icons/io5";
+import toast from "react-hot-toast";
+import api from "../../utils/api";
+import BookCard from "../../components/BookCard";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+const Wishlist = () => {
+  const { user } = useSelector((state) => state.auth);
+  const [wishlistBooks, setWishlistBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [genre, setGenre] = useState("all");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchWishlistBooks = async () => {
+      try {
+        const res = await api.get("/api/wishlist/get");
+        const fetchedBooks = Array.isArray(res.data.wishlist)
+          ? res.data.wishlist
+          : [];
+
+        const visibleBooks =
+          user && user.readBooks?.length > 0
+            ? fetchedBooks.filter((book) => !user.readBooks.includes(book._id))
+            : fetchedBooks;
+
+        setWishlistBooks(visibleBooks);
+        setFilteredBooks(visibleBooks);
+      } catch (err) {
+        console.error("❌ Error fetching wishlist books:", err);
+        toast.error("Failed to load your wishlist 😢");
+      }
+    };
+
+    fetchWishlistBooks();
+  }, [user]);
+
+  useEffect(() => {
+    const filtered = wishlistBooks.filter((b) => {
+      const matchSearch =
+        b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.author.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchGenre = genre === "all" || b.genre === genre;
+      return matchSearch && matchGenre;
+    });
+    setFilteredBooks(filtered);
+  }, [searchTerm, genre, wishlistBooks]);
+
+  const handleRemoveWishlist = async (bookId) => {
+    try {
+      const res = await api.post("/api/wishlist/remove", { bookId });
+      if (res.data.success) {
+        toast.success(res.data.message || "Removed from wishlist ❤️");
+
+        const updatedList = wishlistBooks.filter((b) => b._id !== bookId);
+        setWishlistBooks(updatedList);
+        setFilteredBooks(updatedList);
+      }
+    } catch (err) {
+      console.error(
+        "❌ Wishlist Remove Error:",
+        err.response?.data || err.message
+      );
+      toast.error("Couldn't remove from wishlist 😢");
+    }
+  };
+
+  const handleMarkRead = async (bookId) => {
+    try {
+      const res = await api.post("/api/read/mark-read", { bookId });
+
+      if (res.data.success) {
+        toast.success(res.data.message || "Book marked as read ✅");
+        await api.post("/api/wishlist/remove", { bookId });
+        setWishlistBooks((prev) => prev.filter((b) => b._id !== bookId));
+        setFilteredBooks((prev) => prev.filter((b) => b._id !== bookId));
+      } else {
+        toast.error(res.data.message || "Failed to mark as read");
+      }
+    } catch (err) {
+      console.error("❌ Mark Read Error:", err);
+      toast.error("Failed to mark as read.");
+    }
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  return (
+    <div className='min-h-screen text-gray-100 p-6 relative'>
+      <div className='max-w-6xl mx-auto'>
+        {/* Header */}
+        <div className='flex flex-col sm:flex-row justify-between items-center mb-8 gap-4'>
+          <h1 className='text-3xl font-bold text-pink-400'>💖 My Wishlist</h1>
+
+          <div className='flex gap-3 items-center w-full sm:w-auto'>
+            <input
+              type='text'
+              value={searchTerm}
+              onChange={handleSearch}
+              placeholder='Search by title or author...'
+              className='w-full sm:w-64 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 placeholder-slate-500 focus:ring-2 focus:ring-pink-500 focus:outline-none transition-all'
+            />
+
+            <select
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+              className='px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-pink-400 outline-none'
+            >
+              <option value='all'>All Genres</option>
+              <option value='fiction'>Fiction</option>
+              <option value='fantasy'>Fantasy</option>
+              <option value='technology'>Technology</option>
+              <option value='history'>History</option>
+              <option value='self-help'>Self Help</option>
+            </select>
+          </div>
+        </div>
+
+        {filteredBooks.length > 0 ? (
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {filteredBooks.map((book) => (
+              <BookCard
+                key={book._id}
+                book={book}
+                isUser={!!user}
+                showWishlist={true}
+                onWishlist={() => handleRemoveWishlist(book._id)}
+                wishlist={wishlistBooks.map((b) => b._id)}
+                onRead={() => handleMarkRead(book._id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className='text-center text-slate-400 mt-12 text-lg'>
+            😕 No books in your wishlist yet.
+          </p>
+        )}
+      </div>
+
+      <button
+        className='fixed bottom-6 right-6 text-pink-500 hover:text-pink-400 transition-all duration-300'
+        title='Add new book'
+        onClick={async () => {
+          await toast("📚 Discover more books in Explore!");
+          navigate("/explore");
+        }}
+      >
+        <IoAddCircle className='text-6xl drop-shadow-lg' />
+      </button>
+    </div>
+  );
+};
+
+export default Wishlist;
+
+  B.components
+    a.BookCard.jsx
+    import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { MdBookmarkBorder, MdBookmark } from "react-icons/md";
+
+const BookCard = ({
+  book,
+  isUser,
+  onWishlist,
+  showWishlist = true,
+  showMarkAsRead = false,
+  onRemoveRead,
+  onRead,
+  wishlist,
+}) => {
+  const isWishlisted = wishlist?.includes(book._id);
+
+  return (
+    <div className='bg-slate-800/70 border border-slate-700 rounded-2xl shadow-md hover:shadow-purple-500/30 hover:scale-[1.02] transition-all duration-300 overflow-hidden'>
+      <img
+        src={book.cover}
+        alt={book.title}
+        className='w-full h-60 object-cover'
+      />
+      <div className='p-4 text-left space-y-2'>
+        <h3 className='text-xl font-semibold text-gray-100 truncate'>
+          {book.title}
+        </h3>
+        <p className='text-sm text-slate-400 italic'>by {book.author}</p>
+        <p className='text-xs text-slate-500'>{book.genre}</p>
+
+        {isUser ? (
+          <div className='flex gap-3 pt-3'>
+            {showWishlist && (
+              <button
+                onClick={() => onWishlist(book._id)}
+                className='text-lg text-pink-400 hover:text-pink-300 hover:scale-110 transition-all'
+                title={
+                  isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"
+                }
+              >
+                {isWishlisted ? <FaHeart /> : <FaRegHeart />}
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                showMarkAsRead ? onRemoveRead(book._id) : onRead(book._id);
+              }}
+              className='text-lg text-cyan-400 hover:text-cyan-300 hover:scale-110 transition-all'
+              title={showMarkAsRead ? "Remove from Read" : "Mark as Read"}
+            >
+              {showMarkAsRead ? <MdBookmark /> : <MdBookmarkBorder />}
+            </button>
+          </div>
+        ) : (
+          <p className='text-slate-500 text-sm pt-3 italic'>
+            Login to save or mark books 📖
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default BookCard;
+
+    b.Footer.jsx
+    const Footer = () => {
+  return (
+    <footer className='bg-linear-to-b from-[#0f0f1a] via-[#151527] to-[#1a1a2e] border-t border-purple-700/30 text-center py-8 mt-16 relative overflow-hidden'>
+      <div className='absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-purple-500 via-pink-500 to-cyan-400 opacity-60'></div>
+
+      <div className='absolute inset-0 blur-3xl opacity-10 bg-linear-to-r from-purple-600 via-pink-500 to-cyan-400'></div>
+
+      <div className='relative z-10'>
+        <h2 className='text-gray-300 font-semibold text-lg mb-2 tracking-wide'>
+          © {new Date().getFullYear()} — Developed with ❤️ by{" "}
+          <span className='text-purple-400 font-bold hover:text-pink-400 transition-all duration-300'>
+            Saksham Viraj
+          </span>
+        </h2>
+
+        <p className='text-sm text-slate-400 tracking-wide'>
+          Powered by{" "}
+          <span className='text-cyan-400 font-semibold'>MongoDB</span>,{" "}
+          <span className='text-purple-400 font-semibold'>Express</span>,{" "}
+          <span className='text-pink-400 font-semibold'>React</span>, and{" "}
+          <span className='text-emerald-400 font-semibold'>Node.js</span> 🚀
+        </p>
+
+        <p className='text-xs text-slate-500 mt-2 italic'>
+          Building experiences that connect creativity and code ✨
+        </p>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
+
+    c.Navbar.jsx
+  import { Link, NavLink, useNavigate } from "react-router-dom";
+import { GiBurningBook } from "react-icons/gi";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/slices/authSlice";
+import { Toaster } from "react-hot-toast";
+
+
+const Navbar = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const navLinkClass =
+    "text-gray-300 hover:text-purple-400 font-medium transition-colors duration-300";
+  const activeLink =
+    "text-purple-400 font-semibold border-b-2 border-purple-500 pb-1 ";
+
+  return (
+    <>
+      <Toaster position='top-center' reverseOrder={false} />
+      <header className='bg-linear-to-b from-[#0f0f1a] via-[#151527] to-[#1a1a2e] shadow-md sticky top-0 z-50'>
+        <div className='max-w--7xl mx-auto flex justify-between items-center px-4 py-6'>
+          <Link to='/' className='flex items-center space-x-2'>
+            <GiBurningBook className='text-purple-500 text-3xl' />
+            <h1 className='text-gray-200 font-extrabold text-3xl tracking-wide hover:text-purple-400 transition-all'>
+              Book
+              <span className='text-purple-500'>Vault</span>
+            </h1>
+          </Link>
+          <nav className='hidden md:flex items-center space-x-8 '>
+            {user === null ? (
+              <>
+                <NavLink
+                  to='/home'
+                  className={({ isActive }) =>
+                    `${navLinkClass} ${isActive ? activeLink : ""}`
+                  }
+                >
+                  Home
+                </NavLink>
+                <NavLink
+                  to='/explore'
+                  className={({ isActive }) =>
+                    `${navLinkClass} ${isActive ? activeLink : ""}`
+                  }
+                >
+                  Explore
+                </NavLink>
+                <NavLink
+                  to='/about'
+                  className={({ isActive }) =>
+                    `${navLinkClass} ${isActive ? activeLink : ""}`
+                  }
+                >
+                  About
+                </NavLink>
+                <Link
+                  to='/login'
+                  className='px-5 py-2 bg-purple-600 hover:bg-purple-500  text-white rounded-lg shadow-md font-semibold transition-all'
+                >
+                  Login
+                </Link>
+                <Link
+                  to='/signup'
+                  className='px-5 py-2 bg-pink-500 hover:bg-pink-400  text-white rounded-lg shadow-md font-semibold transition-all'
+                >
+                  <button>SignUp</button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <NavLink
+                  to='/library'
+                  className={({ isActive }) =>
+                    `${navLinkClass} ${isActive ? activeLink : ""}`
+                  }
+                >
+                  Library
+                </NavLink>
+                <NavLink
+                  to='/explore'
+                  className={({ isActive }) =>
+                    `${navLinkClass} ${isActive ? activeLink : ""}`
+                  }
+                >
+                  Explore
+                </NavLink>
+                <NavLink
+                  to='/wishlist'
+                  className={({ isActive }) =>
+                    `${navLinkClass} ${isActive ? activeLink : ""}`
+                  }
+                >
+                  Wishlist
+                </NavLink>
+                <NavLink
+                  to='/profile'
+                  className={({ isActive }) =>
+                    `${navLinkClass} ${isActive ? activeLink : ""}`
+                  }
+                >
+                  Profile
+                </NavLink>
+
+                <button
+                  onClick={() => {
+                    dispatch(logout());
+                    navigate("/");
+                  }}
+                  className='px-5 py-2 bg-red-600 hover:bg-red-500  text-white rounded-lg shadow-md font-semibold transition-all'
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </nav>
+
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className='md:hidden text-gray-300 hover:text-purple-400 text-2xl transition-all'
+          >
+            {menuOpen ? "✕" : "☰"}
+          </button>
+        </div>
+
+        {menuOpen && (
+          <nav className='md:hidden bg-[#151527] border-t border-r-purple-700 flex flex-col items-center space-Y-4 py-4'>
+            {user === null ? (
+              <>
+                <Link
+                  to='/home'
+                  onClick={() => setMenuOpen(false)}
+                  className={navLinkClass}
+                >
+                  Home
+                </Link>
+                <Link
+                  to='/explore'
+                  className={navLinkClass}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Explore
+                </Link>
+                <Link
+                  to='/about'
+                  className={navLinkClass}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  to='/login'
+                  onClick={() => setMenuOpen(false)}
+                  className='px-5 py-2 bg-purple-600 hover:bg-purple-500  text-white rounded-lg shadow-md font-semibold transition-all'
+                >
+                  Login
+                </Link>
+                <Link
+                  to='/signup'
+                  onClick={() => setMenuOpen(false)}
+                  className='px-5 py-2 bg-pink-500 hover:bg-pink-400  text-white rounded-lg shadow-md font-semibold transition-all'
+                >
+                  <button>SignUp</button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to='/library'
+                  onClick={() => setMenuOpen(false)}
+                  className={navLinkClass}
+                >
+                  Library
+                </Link>
+                <Link
+                  to='/explore'
+                  onClick={() => setMenuOpen(false)}
+                  className={navLinkClass}
+                >
+                  Explore
+                </Link>
+                <Link
+                  to='/wishlist'
+                  onClick={() => setMenuOpen(false)}
+                  className={navLinkClass}
+                >
+                  Wishlist
+                </Link>
+                <Link
+                  to='/profile'
+                  onClick={() => setMenuOpen(false)}
+                  className={navLinkClass}
+                >
+                  Profile
+                </Link>
+
+                <button
+                  onClick={() => {
+                    dispatch(logout());
+                    navigate("/");
+                  }}
+                  className='px-5 py-2 bg-red-600 hover:bg-red-500  text-white rounded-lg shadow-md font-semibold transition-all'
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </nav>
+        )}
+      </header>
+    </>
+  );
+};
+
+export default Navbar;
+
+  C.context
+    a.AuthContext.jsx
+  import { createContext, useState, useEffect } from "react";
+
+export const AuthContext = createContext();
+
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const login = (userData, token) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setUser(userData);
+  };
+
+  const logout = () => {
+    console.log("Logging out...");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, setUser, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export default AuthProvider;
+
+  D.redux
+    a.slices
+      i.authSlice.js
+    import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+  user: JSON.parse(localStorage.getItem("user")) || null,
+  token: localStorage.getItem("token") || null,
+};
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
+  reducers: {
+    loginSuccess: (state, action) => {
+      const { user, token } = action.payload;
+      state.user = user;
+      state.token = token;
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    },
+  },
+});
+
+export const { loginSuccess, logout } = authSlice.actions;
+export default authSlice.reducer;
+
+    b.store.js
+  import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./slices/authSlice";
+
+const store = configureStore({
+  reducer: {
+    auth: authReducer,
+  },
+});
+
+export default store;
+
+  e.utils
+    a.api.js
+    import axios from "axios";
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000",
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+export default api;
+
+    b.ProtectedRoute.jsx
+import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+const ProtectedRoute = ({ children }) => {
+  const { user } = useSelector((state) => state.auth);
+  return user ? children : <Navigate to='/login' replace />;
+};
+
+export default ProtectedRoute;
+
+  f.App.css
+@import "tailwindcss";
+
+
+
+  g.App.jsx
+import { Routes, Route } from "react-router-dom";
+import "./App.css";
+import { useSelector } from "react-redux";
+
+// Components
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
+// Pages
+import Home from "./pages/Home";
+import Explore from "./pages/Explore";
+import About from "./pages/About";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Error from "./pages/404";
+
+// Protected Pages
+import Library from "./pages/protected/library";
+import Wishlist from "./pages/protected/wishlist";
+import Profile from "./pages/protected/profile";
+
+// utils
+import ProtectedRoute from "./utils/ProtectedRoute";
+
+function App() {
+  const { user } = useSelector((state) => state.auth);
+  return (
+    <>
+      <Navbar />
+      <main className='min-h-screen bg-linear-to-b from-[#0f0f1a] via-[#151527] to-[#1a1a2e] text-gray-200 flex flex-col justify-between transition-all duration-500'>
+        <div className='grow'>
+          <Routes>
+            <Route path='/' element={user ? <Library /> : <Home />} />
+            <Route path='/home' element={<Home />} />
+            <Route path='/explore' element={<Explore />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/signup' element={<Signup />} />
+
+            {user && (
+              <>
+                <Route
+                  path='/library'
+                  element={
+                    <ProtectedRoute>
+                      <Library />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/wishlist'
+                  element={
+                    <ProtectedRoute>
+                      <Wishlist />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/profile'
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+              </>
+            )}
+            <Route path='*' element={<Error />} />
+          </Routes>
+        </div>
+        <Footer />
+      </main>
+    </>
+  );
+}
+
+export default App;
+
+  h.main.jsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.jsx";
+import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import store from "./redux/store.js";
+
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <BrowserRouter>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </BrowserRouter>
+  </StrictMode>
+);
+
+  i.index.html
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookVault</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>
+  j.package.json
+{
+  "name": "bookvault",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.10.1",
+    "@tailwindcss/vite": "^4.1.17",
+    "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
+    "framer-motion": "^12.23.24",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-hook-form": "^7.66.0",
+    "react-hot-toast": "^2.6.0",
+    "react-icons": "^5.5.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.9.5",
+    "tailwindcss": "^4.1.17"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "vite": "^7.1.7"
+  }
+}
+
+2.backend
+  A.controllers
+    a.bookController.js
+    const Book = require("../models/books");
+const User = require("../models/users");
+
+exports.getAllBooks = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    let excludeIds = [];
+
+    if (userId) {
+      const user = await User.findById(userId);
+      excludeIds = user?.readBooks || [];
+    }
+
+    const books = await Book.find({
+      _id: { $nin: excludeIds },
+    });
+
+    return res.json({ success: true, books });
+  } catch (err) {
+    console.error("❌ Fetch Books Error:", err.message);
+    res.status(500).json({ message: "Error fetching books" });
+  }
+};
+
+exports.addBook = async (req, res) => {
+  try {
+    const { title, author, description, coverImage } = req.body;
+    const book = await Book.create({ title, author, description, coverImage });
+    res.status(201).json(book);
+  } catch (err) {
+    res.status(500).json({ message: "Error adding book" });
+  }
+};
+
+    b.readController.js
+const User = require("../models/users");
+
+exports.getRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate("readBooks");
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({ success: true, readBooks: user.readBooks });
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.markToRead = async (req, res) => {
+  try {
+    const userId = req.user.id?.toString();
+    const { bookId } = req.body;
+
+    if (!userId || !bookId) {
+      return res.status(400).json({ error: "Missing user or book ID" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.readBooks.includes(bookId)) {
+      return res.json({ success: true, message: "Already marked as read" });
+    }
+
+    user.readBooks.push(bookId);
+    await user.save();
+
+    return res.json({ success: true, message: "Book marked as read" });
+  } catch (err) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.removeFromRead = async (req, res) => {
+  try {
+    const userId = req.user.id?.toString();
+    const { bookId } = req.body;
+
+    if (!userId || !bookId)
+      return res.status(400).json({ error: "Missing user or book ID" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!user.readBooks.includes(bookId))
+      return res.status(400).json({ error: "Book not found in ReadBooks" });
+
+    user.readBooks = user.readBooks.filter(
+      (id) => id.toString() !== bookId.toString()
+    );
+    await user.save();
+
+    res.json({ success: true, message: "Book removed from ReadBooks" });
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+    c.userController.js
+const { validationResult } = require("express-validator");
+const User = require("../models/users");
+const generateToken = require("../utils/generateToken");
+
+exports.registerUser = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+
+  const { name, username, email, password } = req.body;
+  try {
+    const existing = await User.findOne({ $or: [{ email }, { username }] });
+    if (existing)
+      return res
+        .status(400)
+        .json({ message: "Username or email already exists" });
+
+    const user = await User.create({ name, username, email, password });
+    res.status(201).json({
+      success: true,
+      token: generateToken(user),
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.loginUser = async (req, res) => {
+  const { identifier, password } = req.body;
+  try {
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { username: identifier }],
+    });
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    const match = await user.matchPassword(password);
+    if (!match) return res.status(400).json({ message: "Invalid password" });
+
+    res.json({
+      success: true,
+      token: generateToken(user),
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        wishlist: user.wishlist,
+        readBooks: user.readBooks,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+    d.wishlistController.js
+const User = require("../models/users");
+
+exports.getWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate("wishlist");
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({ success: true, wishlist: user.wishlist });
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.addToWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id?.toString();
+    const { bookId } = req.body;
+
+    if (!userId || !bookId) {
+      return res.status(400).json({ error: "Missing user or book ID" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.wishlist.includes(bookId)) {
+      return res.json({ success: true, message: "Already in wishlist" });
+    }
+
+    user.wishlist.push(bookId);
+    await user.save();
+
+    return res.json({ success: true, message: "Book added to wishlist" });
+  } catch (err) {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.removeFromWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id?.toString();
+    const { bookId } = req.body;
+
+    if (!userId || !bookId)
+      return res.status(400).json({ error: "Missing user or book ID" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!user.wishlist.includes(bookId))
+      return res.status(400).json({ error: "Book not found in wishlist" });
+
+    user.wishlist = user.wishlist.filter(
+      (id) => id.toString() !== bookId.toString()
+    );
+    await user.save();
+
+    res.json({ success: true, message: "Book removed from wishlist" });
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+  B.middleware
+    a.authMiddleware.js
+const jwt = require("jsonwebtoken");
+const User = require("../models/users");
+
+exports.protect = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "No token provided" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    req.user = { id: user._id, username: user.username, email: user.email };
+    next();
+  } catch (err) {
+    console.error("❌ Auth Middleware Error:", err.message);
+    res.status(403).json({ error: "Invalid or expired token" });
+  }
+};
+
+    b.authOptional.js
+const jwt = require("jsonwebtoken");
+const User = require("../models/users");
+
+module.exports = async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return next();
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    req.user = user;
+  } catch (err) {}
+
+  next();
+};
+
+  C.models
+    a.books.js
+const mongoose = require("mongoose");
+
+const bookSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  author: {
+    type: String,
+    required: true,
+  },
+  genre: {
+    type: String,
+    required: true,
+  },
+  cover: {
+    type: String,
+    default: "https://via.placeholder.com/300x400?text=No+Cover",
+  },
+  description: {
+    type: String,
+  },
+  publishedYear: {
+    type: Number,
+  },
+});
+
+module.exports = mongoose.model("Book", bookSchema);
+
+    b.users.js
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    match: /^[a-zA-Z0-9]+$/,
+  },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, minlength: 8 },
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }],
+  readBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }],
+  createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+});
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+userSchema.methods.matchPassword = async function (entered) {
+  return await bcrypt.compare(entered, this.password);
+};
+
+module.exports = mongoose.model("User", userSchema);
+
+  D.routes
+    a.bookRoute.js
+const express = require("express");
+const { getAllBooks, addBook } = require("../controllers/bookController");
+const { protect } = require("../middleware/authMiddleware");
+const authOptional = require("../middleware/authOptional");
+
+const bookRouter = express.Router();
+
+bookRouter.get("/all", authOptional, getAllBooks);
+bookRouter.post("/", protect, addBook);
+
+module.exports = bookRouter;
+
+    b.readRoute.js
+const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
+const readController = require("../controllers/readController");
+const readRouter = express.Router();
+
+readRouter.get("/get-read", protect, readController.getRead);
+readRouter.post("/mark-read", protect, readController.markToRead);
+readRouter.post("/remove", protect, readController.removeFromRead);
+
+module.exports = readRouter;
+
+    c.userRoute.js
+const express = require("express");
+const { body } = require("express-validator");
+const { registerUser, loginUser } = require("../controllers/userController");
+
+const userRouter = express.Router();
+
+userRouter.post(
+  "/register",
+  [
+    body("name").notEmpty(),
+    body("username").matches(/^[a-zA-Z0-9]+$/),
+    body("email").isEmail(),
+    body("password")
+      .isLength({ min: 8 })
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/),
+  ],
+  registerUser
+);
+
+userRouter.post("/login", loginUser);
+module.exports = userRouter;
+
+    d.wishlistRoute.js
+const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
+const wishlistController = require("../controllers/wishlistController");
+const wishlistRouter = express.Router();
+
+wishlistRouter.get("/get", protect, wishlistController.getWishlist);
+wishlistRouter.post("/add", protect, wishlistController.addToWishlist);
+wishlistRouter.post("/remove", protect, wishlistController.removeFromWishlist);
+
+module.exports = wishlistRouter;
+
+  E.utils
+    a.generateToken.js
+const jwt = require("jsonwebtoken");
+
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, username: user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
+module.exports = generateToken;
+
+  F.server.js
+    require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+
+// local module
+const userRouter = require("./routes/userRoute");
+const bookRouter = require("./routes/bookRoute");
+const wishlistRouter = require("./routes/wishlistRoute");
+const readRouter = require("./routes/readRoute");
+
+const app = express();
+
+const PORT = process.env.PORT;
+const MONGO_URL = process.env.MONGO_URL;
+const CLIENT_URL = process.env.CLIENT_URL;
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(
+  cors({
+    origin: CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+app.use("/api/user", userRouter);
+app.use("/api/book", bookRouter);
+app.use("/api/wishlist", wishlistRouter);
+app.use("/api/read", readRouter);
+
+mongoose
+  .connect(MONGO_URL)
+  .then(() => {
+    console.log("MongoDB Connected");
+    app.listen(PORT, () => {
+      console.log(`Server is running on ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("Error while connecting to Mongo:", err);
+  });
+
+  G.package.json
+{
+  "name": "bookvault-b",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-validator": "^7.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.3",
+    "morgan": "^1.10.1",
+    "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
+  }
+}
